@@ -1,0 +1,341 @@
+// Pilot Hub — Phase 1 Schema
+// Run: npx prisma migrate dev --name init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum UserRole {
+  INTERNAL_ADMIN
+  INTERNAL_MEMBER
+  CUSTOMER_ADMIN
+  CUSTOMER_VIEWER
+}
+
+enum AccountStatus {
+  ACTIVE_PILOT
+  EVALUATION
+  CHURNED
+  CONVERTED
+}
+
+enum StakeholderCompany {
+  CUSTOMER
+  INTERNAL
+}
+
+enum InvolvementLevel {
+  DECISION_MAKER
+  CHAMPION
+  INFLUENCER
+  INFORMED
+}
+
+enum MetricStatus {
+  NOT_STARTED
+  ON_TRACK
+  AT_RISK
+  ACHIEVED
+}
+
+enum RiskSeverity {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum PhaseStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETE
+  BLOCKED
+}
+
+enum TaskStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  BLOCKED
+  COMPLETE
+}
+
+enum TaskPriority {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+// ─── Models ───────────────────────────────────────────────────────────────────
+
+/// Customer organization. Each Account gets its own scoped portal at /{slug}.
+model Account {
+  id             String        @id @default(cuid())
+  name           String
+  /// URL-safe slug used as the portal path: portal.company.com/{slug}
+  slug           String        @unique
+  logoUrl        String?
+  status         AccountStatus @default(ACTIVE_PILOT)
+  /// JSON config for feature flags and per-account settings
+  config         Json          @default("{}")
+  pilotStartDate DateTime?
+  goNoGoDate     DateTime?
+  primaryColor   String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  users            AccountUser[]
+  mutualSuccessPlan MutualSuccessPlan?
+  pilotSites       PilotSite[]
+  stakeholders     Stakeholder[]
+  phases           Phase[]
+  helpfulLinks     HelpfulLink[]
+  welcomePage      WelcomePage?
+  notificationJobs NotificationJob[]
+  auditLogs        AuditLog[]
+}
+
+/// Internal and external users. Role determines global access level.
+model User {
+  id                String   @id @default(cuid())
+  name              String
+  email             String   @unique
+  hashedPassword    String?
+  role              UserRole @default(CUSTOMER_VIEWER)
+  timezone          String   @default("America/New_York")
+  /// JSON map of notification type → boolean (opt-in/out per notification category)
+  notificationPrefs Json     @default("{}")
+  lastLoginAt       DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  accounts         AccountUser[]
+  assignedTasks    Task[]          @relation("TaskAssignee")
+  taskComments     TaskComment[]
+  ownedMetrics     SuccessMetric[] @relation("MetricOwner")
+  notificationJobs NotificationJob[]
+  auditLogs        AuditLog[]
+}
+
+/// Join table scoping a User to an Account with an account-level role override.
+/// A CUSTOMER_ADMIN on one account can be CUSTOMER_VIEWER on another.
+model AccountUser {
+  id        String   @id @default(cuid())
+  accountId String
+  userId    String
+  /// Role as it applies to this specific account (may differ from User.role)
+  role      UserRole
+  createdAt DateTime @default(now())
+
+  account Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([accountId, userId])
+}
+
+/// One-to-one with Account. The living document that defines pilot goals and scope.
+model MutualSuccessPlan {
+  id                     String   @id @default(cuid())
+  accountId              String   @unique
+  /// Tiptap JSON doc
+  keyPainPoints          Json?
+  /// Tiptap JSON doc
+  definitionOfDone       Json?
+  /// Tiptap JSON doc
+  outOfScope             Json?
+  /// Tiptap JSON doc
+  expansionOpportunities Json?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  account        Account         @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  successMetrics SuccessMetric[]
+  risks          Risk[]
+}
+
+/// Named pilot site/location within an Account.
+model PilotSite {
+  id        String   @id @default(cuid())
+  accountId String
+  name      String
+  createdAt DateTime @default(now())
+
+  account Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+}
+
+/// Contact record for all parties involved in the pilot.
+model Stakeholder {
+  id               String             @id @default(cuid())
+  accountId        String
+  name             String
+  company          StakeholderCompany
+  title            String?
+  email            String
+  phone            String?
+  involvementLevel InvolvementLevel
+  /// Updated manually by CSM after calls/meetings. Stale > 14 days is flagged.
+  lastEngagedAt    DateTime?
+  notes            String?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  account Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+}
+
+/// Measurable outcome tied to the Mutual Success Plan.
+model SuccessMetric {
+  id            String       @id @default(cuid())
+  mspId         String
+  name          String
+  description   String?
+  baselineValue String?
+  targetValue   String?
+  currentValue  String?
+  status        MetricStatus @default(NOT_STARTED)
+  ownerId       String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  msp   MutualSuccessPlan @relation(fields: [mspId], references: [id], onDelete: Cascade)
+  owner User?             @relation("MetricOwner", fields: [ownerId], references: [id])
+}
+
+/// Known risk with mitigation plan, scoped to the MSP.
+model Risk {
+  id             String       @id @default(cuid())
+  mspId          String
+  description    String
+  severity       RiskSeverity @default(MEDIUM)
+  mitigationPlan String?
+  /// Free-text owner name (not a user FK — may be an external contact)
+  owner          String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  msp MutualSuccessPlan @relation(fields: [mspId], references: [id], onDelete: Cascade)
+}
+
+/// A phase of the pilot. Supports nesting via parentPhaseId.
+model Phase {
+  id            String      @id @default(cuid())
+  accountId     String
+  name          String
+  description   String?
+  startDate     DateTime?
+  targetEndDate DateTime?
+  actualEndDate DateTime?
+  status        PhaseStatus @default(NOT_STARTED)
+  parentPhaseId String?
+  order         Int         @default(0)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  account     Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  parentPhase Phase?   @relation("SubPhases", fields: [parentPhaseId], references: [id])
+  subPhases   Phase[]  @relation("SubPhases")
+  tasks       Task[]
+}
+
+/// An individual action item linked to a Phase.
+model Task {
+  id            String       @id @default(cuid())
+  phaseId       String
+  name          String
+  /// Tiptap JSON doc for rich description
+  description   Json?
+  assigneeId    String?
+  dueDate       DateTime?
+  priority      TaskPriority @default(MEDIUM)
+  status        TaskStatus   @default(NOT_STARTED)
+  /// Required when status = BLOCKED. Triggers immediate CSM/IL notification.
+  blockerReason String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  phase    Phase         @relation(fields: [phaseId], references: [id], onDelete: Cascade)
+  assignee User?         @relation("TaskAssignee", fields: [assigneeId], references: [id])
+  comments TaskComment[]
+}
+
+/// Comment thread entry on a Task.
+model TaskComment {
+  id        String   @id @default(cuid())
+  taskId    String
+  authorId  String
+  content   String
+  createdAt DateTime @default(now())
+
+  task   Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  author User @relation(fields: [authorId], references: [id])
+}
+
+/// Curated resource link shown in the customer portal.
+model HelpfulLink {
+  id                String   @id @default(cuid())
+  accountId         String
+  title             String
+  url               String
+  category          String   @default("Documentation")
+  description       String?
+  thumbnailUrl      String?
+  /// Required Reading links are surfaced on the welcome page.
+  isRequiredReading Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  account Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+}
+
+/// Welcome page content per account, with version history.
+model WelcomePage {
+  id        String   @id @default(cuid())
+  accountId String   @unique
+  /// Tiptap JSON doc for the main welcome content
+  content   Json?
+  /// JSON array of up to 10 previous versions: [{ content, savedAt, savedBy }]
+  versions  Json     @default("[]")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  account Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+}
+
+/// Outbound email job queue. Processed by a cron job.
+model NotificationJob {
+  id          String    @id @default(cuid())
+  type        String
+  recipientId String
+  accountId   String?
+  scheduledAt DateTime
+  sentAt      DateTime?
+  /// Arbitrary JSON payload — email subject, body, deep-link URL, etc.
+  payload     Json      @default("{}")
+  createdAt   DateTime  @default(now())
+
+  recipient User     @relation(fields: [recipientId], references: [id])
+  account   Account? @relation(fields: [accountId], references: [id])
+}
+
+/// Immutable audit trail. Written on every mutation to MSP, tasks, metrics, phases, stakeholders.
+model AuditLog {
+  id         String   @id @default(cuid())
+  entityType String
+  entityId   String
+  accountId  String?
+  userId     String?
+  field      String
+  oldValue   String?
+  newValue   String?
+  timestamp  DateTime @default(now())
+
+  account Account? @relation(fields: [accountId], references: [id])
+  user    User?    @relation(fields: [userId], references: [id])
+
+  @@index([entityType, entityId])
+  @@index([accountId, timestamp])
+}
