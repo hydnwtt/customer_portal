@@ -4,6 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Building2, Users } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { buttonVariants } from "@/components/ui/button"
 import type { UserRole } from "@prisma/client"
 
 interface AdminSidebarProps {
@@ -15,18 +16,17 @@ export default function AdminSidebar({ userRole }: AdminSidebarProps) {
 
   const navItems = [
     { label: "All Accounts", href: "/admin/accounts", icon: Building2 },
-    // User Management is INTERNAL_ADMIN only
     ...(userRole === "INTERNAL_ADMIN"
       ? [{ label: "User Management", href: "/admin/users", icon: Users }]
       : []),
   ]
 
   return (
-    <aside className="flex w-64 shrink-0 flex-col border-r border-gray-200 bg-white">
+    <aside className="flex w-64 shrink-0 flex-col border-r bg-background">
       {/* Wordmark */}
-      <div className="flex h-16 items-center gap-2 border-b border-gray-200 px-6">
-        <span className="text-lg font-bold text-gray-900">Pilot Hub</span>
-        <span className="rounded bg-gray-100 px-1.5 py-0.5 text-xs font-semibold uppercase tracking-wide text-gray-500">
+      <div className="flex h-16 items-center gap-2 border-b px-6">
+        <span className="text-lg font-bold">Pilot Hub</span>
+        <span className="rounded bg-muted px-1.5 py-0.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           Admin
         </span>
       </div>
@@ -42,18 +42,11 @@ export default function AdminSidebar({ userRole }: AdminSidebarProps) {
               key={item.href}
               href={item.href}
               className={cn(
-                "group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                isActive
-                  ? "bg-gray-900 text-white"
-                  : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                buttonVariants({ variant: isActive ? "secondary" : "ghost", size: "sm" }),
+                "w-full justify-start gap-3"
               )}
             >
-              <Icon
-                className={cn(
-                  "h-4 w-4 shrink-0",
-                  isActive ? "text-white" : "text-gray-400 group-hover:text-gray-600"
-                )}
-              />
+              <Icon className="size-4 shrink-0" />
               {item.label}
             </Link>
           )
