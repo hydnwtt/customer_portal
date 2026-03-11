@@ -24,6 +24,7 @@ interface TiptapEditorProps {
 export const TiptapEditor = forwardRef<TiptapEditorHandle, TiptapEditorProps>(
   function TiptapEditor({ initialContent, placeholder = "Start writing…", className }, ref) {
     const editor = useEditor({
+      immediatelyRender: false,
       extensions: [
         StarterKit,
         Underline,
