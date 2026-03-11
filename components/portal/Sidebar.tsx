@@ -4,23 +4,26 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Home, BarChart2, Clock, CheckSquare, BookOpen, X } from "lucide-react"
 import { cn } from "@/lib/utils"
+import type { AccountConfig } from "@/lib/account-config"
 
 const NAV_ITEMS = [
-  { label: "Welcome", href: "welcome", icon: Home },
-  { label: "Success Plan", href: "success-plan", icon: BarChart2 },
-  { label: "Timeline", href: "timeline", icon: Clock },
-  { label: "Tasks", href: "tasks", icon: CheckSquare },
-  { label: "Links", href: "links", icon: BookOpen },
-] as const
+  { label: "Welcome", href: "welcome", icon: Home, gate: "enableWelcomePage" as keyof AccountConfig },
+  { label: "Success Plan", href: "success-plan", icon: BarChart2, gate: "enableSuccessMetrics" as keyof AccountConfig },
+  { label: "Timeline", href: "timeline", icon: Clock, gate: "enableTimeline" as keyof AccountConfig },
+  { label: "Tasks", href: "tasks", icon: CheckSquare, gate: "enableTimeline" as keyof AccountConfig },
+  { label: "Links", href: "links", icon: BookOpen, gate: "enableHelpfulLinks" as keyof AccountConfig },
+]
 
 interface PortalSidebarProps {
   slug: string
+  config: AccountConfig
   isOpen: boolean
   onClose: () => void
 }
 
-export default function PortalSidebar({ slug, isOpen, onClose }: PortalSidebarProps) {
+export default function PortalSidebar({ slug, config, isOpen, onClose }: PortalSidebarProps) {
   const pathname = usePathname()
+  const visibleItems = NAV_ITEMS.filter((item) => config[item.gate] !== false)
 
   return (
     <>
@@ -55,7 +58,7 @@ export default function PortalSidebar({ slug, isOpen, onClose }: PortalSidebarPr
 
         {/* Navigation */}
         <nav className="flex-1 space-y-0.5 px-3 py-4 lg:pt-6">
-          {NAV_ITEMS.map((item) => {
+          {visibleItems.map((item) => {
             const href = `/${slug}/${item.href}`
             const isActive = pathname === href || pathname.startsWith(`${href}/`)
             const Icon = item.icon
@@ -67,16 +70,19 @@ export default function PortalSidebar({ slug, isOpen, onClose }: PortalSidebarPr
                 onClick={onClose}
                 className={cn(
                   "group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                  isActive
-                    ? "bg-blue-50 text-blue-700"
-                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                  !isActive && "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                 )}
+                style={isActive ? {
+                  backgroundColor: "color-mix(in srgb, var(--portal-primary, #2563eb) 12%, transparent)",
+                  color: "var(--portal-primary, #2563eb)",
+                } : undefined}
               >
                 <Icon
                   className={cn(
                     "h-4 w-4 shrink-0 transition-colors",
-                    isActive ? "text-blue-600" : "text-gray-400 group-hover:text-gray-600"
+                    !isActive && "text-gray-400 group-hover:text-gray-600"
                   )}
+                  style={isActive ? { color: "var(--portal-primary, #2563eb)" } : undefined}
                 />
                 {item.label}
               </Link>

@@ -3,6 +3,7 @@
 import { useState } from "react"
 import PortalSidebar from "@/components/portal/Sidebar"
 import PortalHeader from "@/components/portal/Header"
+import type { AccountConfig } from "@/lib/account-config"
 
 interface PortalShellProps {
   children: React.ReactNode
@@ -12,6 +13,7 @@ interface PortalShellProps {
     logoUrl: string | null
     goNoGoDate: string | null
     primaryColor: string | null
+    config: AccountConfig
   }
 }
 
@@ -19,9 +21,13 @@ export function PortalShell({ children, slug, account }: PortalShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
+    <div
+      className="flex h-screen overflow-hidden bg-gray-50"
+      style={account.primaryColor ? ({ "--portal-primary": account.primaryColor } as React.CSSProperties) : undefined}
+    >
       <PortalSidebar
         slug={slug}
+        config={account.config}
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
       />

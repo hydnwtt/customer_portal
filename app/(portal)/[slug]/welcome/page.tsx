@@ -1,19 +1,38 @@
+import { db } from "@/lib/db"
+import { WelcomePageContent } from "@/components/portal/welcome/WelcomePageContent"
+
 export const metadata = { title: "Welcome" }
 
-export default function WelcomePage() {
+interface Props {
+  params: Promise<{ slug: string }>
+}
+
+export default async function WelcomePage({ params }: Props) {
+  const { slug } = await params
+
+  const [welcomePage, requiredLinks] = await Promise.all([
+    db.welcomePage.findFirst({
+      where: { account: { slug } },
+      select: { content: true },
+    }),
+    db.helpfulLink.findMany({
+      where: { account: { slug }, isRequiredReading: true },
+      orderBy: { createdAt: "asc" },
+      select: { id: true, title: true, url: true, description: true },
+    }),
+  ])
+
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-1">Welcome</h1>
-      <p className="text-sm text-gray-500 mb-8">
+      <h1 className="mb-1 text-2xl font-bold text-foreground">Welcome</h1>
+      <p className="mb-8 text-sm text-muted-foreground">
         Your pilot hub — everything you need in one place.
       </p>
 
-      {/* Placeholder — Epic 3 (Tasks 3.1 + 3.2) will build the full welcome page */}
-      <div className="rounded-xl border border-dashed border-gray-300 bg-white p-12 text-center">
-        <p className="text-sm font-medium text-gray-400">
-          Welcome page content coming in Epic 3
-        </p>
-      </div>
+      <WelcomePageContent
+        content={welcomePage?.content ?? null}
+        requiredLinks={requiredLinks}
+      />
     </div>
   )
 }
