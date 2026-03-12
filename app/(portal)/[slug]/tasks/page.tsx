@@ -1,19 +1,62 @@
+import { db } from "@/lib/db"
+import { auth } from "@/lib/auth"
+import { TasksContent } from "@/components/portal/tasks/TasksContent"
+
 export const metadata = { title: "Tasks" }
 
-export default function TasksPage() {
-  return (
-    <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-1">Action Plan</h1>
-      <p className="text-sm text-gray-500 mb-8">
-        Shared task list for completing your pilot successfully.
-      </p>
+export default async function TasksPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>
+}) {
+  const { slug } = await params
+  const session = await auth()
 
-      {/* Placeholder — Epic 6 (Tasks 6.1–6.4) will build the full task tracker */}
-      <div className="rounded-xl border border-dashed border-gray-300 bg-white p-12 text-center">
-        <p className="text-sm font-medium text-gray-400">
-          Task tracker coming in Epic 6
-        </p>
-      </div>
-    </div>
-  )
+  const canEdit =
+    session?.user?.accountRole === "CUSTOMER_ADMIN" ||
+    session?.user?.role === "INTERNAL_ADMIN" ||
+    session?.user?.role === "INTERNAL_MEMBER"
+
+  const currentUserId = session?.user?.id ?? null
+
+  const phases = await db.phase.findMany({
+    where: { account: { slug } },
+    include: {
+      tasks: {
+        include: {
+          assignee: { select: { name: true } },
+          comments: {
+            include: { author: { select: { id: true, name: true } } },
+            orderBy: { createdAt: "asc" },
+          },
+        },
+        orderBy: { createdAt: "asc" },
+      },
+    },
+    orderBy: { order: "asc" },
+  })
+
+  const serialized = phases.map((p) => ({
+    id: p.id,
+    name: p.name,
+    status: p.status,
+    tasks: p.tasks.map((t) => ({
+      id: t.id,
+      name: t.name,
+      status: t.status,
+      priority: t.priority,
+      assigneeName: t.assignee?.name ?? null,
+      dueDate: t.dueDate?.toISOString() ?? null,
+      blockerReason: t.blockerReason,
+      comments: t.comments.map((c) => ({
+        id: c.id,
+        authorId: c.author.id,
+        authorName: c.author.name ?? "Unknown",
+        content: c.content,
+        createdAt: c.createdAt.toISOString(),
+      })),
+    })),
+  }))
+
+  return <TasksContent phases={serialized} canEdit={canEdit} slug={slug} currentUserId={currentUserId} />
 }

@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, BarChart2, Clock, CheckSquare, BookOpen, X } from "lucide-react"
+import { Home, BarChart2, Clock, CheckSquare, BookOpen, Users, TrendingUp, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { AccountConfig } from "@/lib/account-config"
 
@@ -12,6 +12,8 @@ const NAV_ITEMS = [
   { label: "Timeline", href: "timeline", icon: Clock, gate: "enableTimeline" as keyof AccountConfig },
   { label: "Tasks", href: "tasks", icon: CheckSquare, gate: "enableTimeline" as keyof AccountConfig },
   { label: "Links", href: "links", icon: BookOpen, gate: "enableHelpfulLinks" as keyof AccountConfig },
+  { label: "Stakeholders", href: "stakeholders", icon: Users, gate: "enableStakeholders" as keyof AccountConfig },
+  { label: "ROI Calculator", href: "roi-calculator", icon: TrendingUp, gate: "enableRoiCalculator" as keyof AccountConfig },
 ]
 
 interface PortalSidebarProps {
