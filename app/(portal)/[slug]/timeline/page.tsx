@@ -1,19 +1,32 @@
+import { db } from "@/lib/db"
+import { TimelineContent } from "@/components/portal/timeline/TimelineContent"
+
 export const metadata = { title: "Timeline" }
 
-export default function TimelinePage() {
-  return (
-    <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-1">Phase Timeline</h1>
-      <p className="text-sm text-gray-500 mb-8">
-        Visual overview of pilot phases and milestones.
-      </p>
+export default async function TimelinePage({
+  params,
+}: {
+  params: Promise<{ slug: string }>
+}) {
+  const { slug } = await params
 
-      {/* Placeholder — Epic 5 (Tasks 5.1 + 5.2) will build the Gantt-style timeline */}
-      <div className="rounded-xl border border-dashed border-gray-300 bg-white p-12 text-center">
-        <p className="text-sm font-medium text-gray-400">
-          Phase timeline coming in Epic 5
-        </p>
-      </div>
-    </div>
-  )
+  const phases = await db.phase.findMany({
+    where: { account: { slug } },
+    include: {
+      tasks: { select: { status: true } },
+    },
+    orderBy: { order: "asc" },
+  })
+
+  const serialized = phases.map((p) => ({
+    id: p.id,
+    name: p.name,
+    description: p.description,
+    startDate: p.startDate?.toISOString() ?? null,
+    targetEndDate: p.targetEndDate?.toISOString() ?? null,
+    status: p.status,
+    tasks: p.tasks.map((t) => ({ status: t.status })),
+  }))
+
+  return <TimelineContent phases={serialized} />
 }

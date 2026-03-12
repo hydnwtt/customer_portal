@@ -10,6 +10,7 @@ const TABS = [
   { label: "Hub Config", href: "config" },
   { label: "Welcome Page", href: "welcome-page" },
   { label: "Success Plan", href: "success-plan" },
+  { label: "Timeline", href: "timeline" },
 ]
 
 export function AccountDetailTabs({ accountId }: { accountId: string }) {
