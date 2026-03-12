@@ -17,11 +17,19 @@ export default async function TasksPage({
     session?.user?.role === "INTERNAL_ADMIN" ||
     session?.user?.role === "INTERNAL_MEMBER"
 
+  const currentUserId = session?.user?.id ?? null
+
   const phases = await db.phase.findMany({
     where: { account: { slug } },
     include: {
       tasks: {
-        include: { assignee: { select: { name: true } } },
+        include: {
+          assignee: { select: { name: true } },
+          comments: {
+            include: { author: { select: { id: true, name: true } } },
+            orderBy: { createdAt: "asc" },
+          },
+        },
         orderBy: { createdAt: "asc" },
       },
     },
@@ -40,8 +48,15 @@ export default async function TasksPage({
       assigneeName: t.assignee?.name ?? null,
       dueDate: t.dueDate?.toISOString() ?? null,
       blockerReason: t.blockerReason,
+      comments: t.comments.map((c) => ({
+        id: c.id,
+        authorId: c.author.id,
+        authorName: c.author.name ?? "Unknown",
+        content: c.content,
+        createdAt: c.createdAt.toISOString(),
+      })),
     })),
   }))
 
-  return <TasksContent phases={serialized} canEdit={canEdit} slug={slug} />
+  return <TasksContent phases={serialized} canEdit={canEdit} slug={slug} currentUserId={currentUserId} />
 }

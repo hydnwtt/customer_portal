@@ -12,8 +12,18 @@ import {
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
+import { MessageSquare } from "lucide-react"
 import { formatDate } from "@/lib/utils"
 import { updateTaskStatus } from "@/app/(portal)/[slug]/tasks/actions"
+import { TaskCommentThread } from "./TaskCommentThread"
+
+export interface SerializedComment {
+  id: string
+  authorId: string
+  authorName: string
+  content: string
+  createdAt: string
+}
 
 interface SerializedTask {
   id: string
@@ -23,6 +33,7 @@ interface SerializedTask {
   assigneeName: string | null
   dueDate: string | null
   blockerReason: string | null
+  comments: SerializedComment[]
 }
 
 interface SerializedPhase {
@@ -36,6 +47,7 @@ interface TasksContentProps {
   phases: SerializedPhase[]
   canEdit: boolean
   slug: string
+  currentUserId: string | null
 }
 
 type FilterValue = "ALL" | TaskStatus
@@ -124,13 +136,15 @@ function phaseStatusBadge(status: PhaseStatus) {
 interface TaskCardProps {
   task: SerializedTask
   canEdit: boolean
+  currentUserId: string | null
 }
 
-function TaskCard({ task, canEdit }: TaskCardProps) {
+function TaskCard({ task, canEdit, currentUserId }: TaskCardProps) {
   const [isPending, startTransition] = useTransition()
   const [localStatus, setLocalStatus] = useState<TaskStatus>(task.status)
   const [pendingBlocker, setPendingBlocker] = useState(task.blockerReason ?? "")
   const [showBlockerInput, setShowBlockerInput] = useState(false)
+  const [showComments, setShowComments] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   function handleStatusChange(newStatus: TaskStatus) {
@@ -249,12 +263,31 @@ function TaskCard({ task, canEdit }: TaskCardProps) {
         </div>
       )}
 
+      {/* Comment toggle */}
+      <button
+        onClick={() => setShowComments((v) => !v)}
+        className="mt-3 flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+      >
+        <MessageSquare className="h-3.5 w-3.5" />
+        {task.comments.length > 0
+          ? `${task.comments.length} comment${task.comments.length === 1 ? "" : "s"}`
+          : "Comment"}
+      </button>
+
+      {showComments && (
+        <TaskCommentThread
+          taskId={task.id}
+          comments={task.comments}
+          currentUserId={currentUserId}
+        />
+      )}
+
       {error && <p className="mt-2 text-xs text-destructive">{error}</p>}
     </div>
   )
 }
 
-export function TasksContent({ phases, canEdit }: TasksContentProps) {
+export function TasksContent({ phases, canEdit, currentUserId }: TasksContentProps) {
   const [activeFilter, setActiveFilter] = useState<FilterValue>("ALL")
 
   const totalTasks = phases.reduce((acc, p) => acc + p.tasks.length, 0)
@@ -319,7 +352,7 @@ export function TasksContent({ phases, canEdit }: TasksContentProps) {
                   </div>
                   <div className="space-y-3">
                     {phase.tasks.map((task) => (
-                      <TaskCard key={task.id} task={task} canEdit={canEdit} />
+                      <TaskCard key={task.id} task={task} canEdit={canEdit} currentUserId={currentUserId} />
                     ))}
                   </div>
                 </div>
