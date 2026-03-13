@@ -37,12 +37,16 @@ export async function acceptInvite(
     data: { hashedPassword: await hashPassword(password) },
   })
 
+  // Determine redirect based on role — internal users go to admin, customers to their portal
+  const isInternal = user.role === "INTERNAL_ADMIN" || user.role === "INTERNAL_MEMBER"
+  const redirectTo = isInternal ? "/admin/accounts" : `/${payload.accountSlug}/welcome`
+
   // Sign the user in immediately — this throws a NEXT_REDIRECT which we re-throw
   try {
     await signIn("credentials", {
       email: user.email,
       password,
-      redirectTo: `/${payload.accountSlug}/welcome`,
+      redirectTo,
     })
   } catch (error) {
     if (isRedirectError(error)) throw error

@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { UserRole } from "@prisma/client"
-import { CopyIcon, CheckIcon } from "lucide-react"
+import { CopyIcon, CheckIcon, MailCheckIcon } from "lucide-react"
 import {
   Sheet,
   SheetContent,
@@ -48,6 +48,7 @@ interface InviteInternalUserSheetProps {
 export function InviteInternalUserSheet({ open, onOpenChange }: InviteInternalUserSheetProps) {
   const [serverError, setServerError] = useState<string | null>(null)
   const [tempPassword, setTempPassword] = useState<string | null>(null)
+  const [invitedEmail, setInvitedEmail] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
 
   const {
@@ -63,14 +64,22 @@ export function InviteInternalUserSheet({ open, onOpenChange }: InviteInternalUs
 
   async function onSubmit(values: FormValues) {
     setServerError(null)
-    const result = await inviteInternalUser(values)
-    if (!result.success) {
-      setServerError(result.error)
-      return
+    try {
+      const result = await inviteInternalUser(values)
+      if (!result.success) {
+        setServerError(result.error)
+        return
+      }
+      reset()
+      onOpenChange(false)
+      if (result.tempPassword) {
+        setTempPassword(result.tempPassword)
+      } else {
+        setInvitedEmail(values.email)
+      }
+    } catch {
+      setServerError("Something went wrong. Please try again.")
     }
-    reset()
-    onOpenChange(false)
-    setTempPassword(result.tempPassword)
   }
 
   async function handleCopy() {
@@ -106,7 +115,7 @@ export function InviteInternalUserSheet({ open, onOpenChange }: InviteInternalUs
 
             <div className="space-y-1">
               <Label htmlFor="int-email">Email *</Label>
-              <Input id="int-email" type="email" {...register("email")} placeholder="jane@pilothub.dev" />
+              <Input id="int-email" type="email" {...register("email")} placeholder="jane@company.com" />
               {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
             </div>
 
@@ -145,26 +154,51 @@ export function InviteInternalUserSheet({ open, onOpenChange }: InviteInternalUs
         </SheetContent>
       </Sheet>
 
-      {/* Temp password dialog — non-dismissible */}
-      <Dialog open={tempPassword !== null} onOpenChange={() => {}}>
-        <DialogContent className="sm:max-w-sm" showCloseButton={false}>
-          <DialogHeader>
-            <DialogTitle>Temporary Password</DialogTitle>
-          </DialogHeader>
-          <p className="text-sm text-muted-foreground">
-            Share this securely with the new team member. It will only be shown once.
-          </p>
-          <div className="flex items-center gap-2 rounded-md border bg-muted px-3 py-2 font-mono text-sm">
-            <span className="flex-1 select-all">{tempPassword}</span>
-            <Button variant="ghost" size="icon-sm" onClick={handleCopy}>
-              {copied ? <CheckIcon className="size-4 text-green-600" /> : <CopyIcon className="size-4" />}
-            </Button>
-          </div>
-          <DialogFooter>
-            <Button onClick={() => setTempPassword(null)}>I&apos;ve saved it</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Invite sent confirmation — only mounted when needed */}
+      {invitedEmail !== null && (
+        <Dialog open={true} onOpenChange={(v) => { if (!v) setInvitedEmail(null) }}>
+          <DialogContent className="sm:max-w-sm">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <MailCheckIcon className="size-5 text-green-600" />
+                Invite Sent
+              </DialogTitle>
+            </DialogHeader>
+            <p className="text-sm text-muted-foreground">
+              An invite email has been sent to{" "}
+              <span className="font-medium text-foreground">{invitedEmail}</span>. They&apos;ll
+              receive a link to set their password and access the admin panel.
+            </p>
+            <DialogFooter>
+              <Button onClick={() => setInvitedEmail(null)}>Done</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Temp password fallback — only mounted when needed */}
+      {tempPassword !== null && (
+        <Dialog open={true} onOpenChange={(v) => { if (!v) setTempPassword(null) }}>
+          <DialogContent className="sm:max-w-sm">
+            <DialogHeader>
+              <DialogTitle>Temporary Password</DialogTitle>
+            </DialogHeader>
+            <p className="text-sm text-muted-foreground">
+              The invite email couldn&apos;t be sent. Copy this temporary password and share it
+              securely with the new team member.
+            </p>
+            <div className="flex items-center gap-2 rounded-md border bg-muted px-3 py-2 font-mono text-sm">
+              <span className="flex-1 select-all">{tempPassword}</span>
+              <Button variant="ghost" size="icon-sm" onClick={handleCopy}>
+                {copied ? <CheckIcon className="size-4 text-green-600" /> : <CopyIcon className="size-4" />}
+              </Button>
+            </div>
+            <DialogFooter>
+              <Button onClick={() => setTempPassword(null)}>Done</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </>
   )
 }

@@ -7,6 +7,8 @@ import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { writeAuditLog } from "@/lib/audit"
 import { generateTempPassword, hashPassword } from "@/lib/passwords"
+import { generateInviteToken } from "@/lib/invite-token"
+import { sendTeamInviteEmail } from "@/lib/email"
 
 // ─── Invite Internal User ────────────────────────────────────────────────────
 
@@ -20,7 +22,10 @@ export type InviteInternalUserInput = z.infer<typeof inviteSchema>
 
 export async function inviteInternalUser(
   input: InviteInternalUserInput
-): Promise<{ success: true; tempPassword: string } | { success: false; error: string }> {
+): Promise<
+  | { success: true; tempPassword: string | null }
+  | { success: false; error: string }
+> {
   const session = await auth()
   if (session?.user?.role !== "INTERNAL_ADMIN") {
     return { success: false, error: "Unauthorized" }
@@ -54,6 +59,21 @@ export async function inviteInternalUser(
   })
 
   revalidatePath("/admin/users")
+
+  // Attempt to send invite email
+  try {
+    const token = generateInviteToken({ userId: newUser.id, accountSlug: "" })
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? ""
+    const inviteUrl = `${appUrl}/auth/accept-invite?token=${token}`
+    const emailResult = await sendTeamInviteEmail({ to: email, name, inviteUrl })
+    if (emailResult.success) {
+      return { success: true, tempPassword: null } // email sent — don't show temp password
+    }
+  } catch (err) {
+    console.error("[invite] Failed to send team invite email:", err)
+  }
+
+  // Email failed — fall back to showing the temp password
   return { success: true, tempPassword }
 }
 
