@@ -1,8 +1,14 @@
 import { Resend } from "resend"
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+function getResend() {
+  const key = process.env.RESEND_API_KEY
+  if (!key) throw new Error("RESEND_API_KEY is not configured")
+  return new Resend(key)
+}
 
-const FROM = `${process.env.RESEND_FROM_NAME ?? "Pilot Hub"} <${process.env.RESEND_FROM_EMAIL ?? "noreply@example.com"}>`
+function getFrom() {
+  return `${process.env.RESEND_FROM_NAME ?? "Pilot Hub"} <${process.env.RESEND_FROM_EMAIL ?? "noreply@example.com"}>`
+}
 
 interface SendInviteEmailParams {
   to: string
@@ -71,8 +77,8 @@ export async function sendInviteEmail({
 </html>`
 
   try {
-    const { error } = await resend.emails.send({
-      from: FROM,
+    const { error } = await getResend().emails.send({
+      from: getFrom(),
       to,
       subject: `You've been invited to ${accountName}'s Pilot Hub`,
       html,
@@ -156,8 +162,8 @@ export async function sendTeamInviteEmail({
 </html>`
 
   try {
-    const { error } = await resend.emails.send({
-      from: FROM,
+    const { error } = await getResend().emails.send({
+      from: getFrom(),
       to,
       subject: `You've been added to the ${appName} team`,
       html,
