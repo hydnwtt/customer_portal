@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { UserRole } from "@prisma/client"
-import { CopyIcon, CheckIcon } from "lucide-react"
+import { CopyIcon, CheckIcon, MailCheckIcon } from "lucide-react"
 import {
   Sheet,
   SheetContent,
@@ -49,6 +49,7 @@ interface InviteUserSheetProps {
 export function InviteUserSheet({ accountId, open, onOpenChange }: InviteUserSheetProps) {
   const [serverError, setServerError] = useState<string | null>(null)
   const [tempPassword, setTempPassword] = useState<string | null>(null)
+  const [invitedEmail, setInvitedEmail] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
 
   const {
@@ -72,7 +73,11 @@ export function InviteUserSheet({ accountId, open, onOpenChange }: InviteUserShe
     reset()
     onOpenChange(false)
     if (result.tempPassword) {
+      // Email failed — fall back to showing temp password
       setTempPassword(result.tempPassword)
+    } else {
+      // Email sent successfully
+      setInvitedEmail(values.email)
     }
   }
 
@@ -145,14 +150,35 @@ export function InviteUserSheet({ accountId, open, onOpenChange }: InviteUserShe
         </SheetContent>
       </Sheet>
 
-      {/* Temp password reveal dialog — non-dismissible */}
+      {/* Invite sent confirmation dialog */}
+      <Dialog open={invitedEmail !== null} onOpenChange={() => {}}>
+        <DialogContent className="sm:max-w-sm" showCloseButton={false}>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <MailCheckIcon className="size-5 text-green-600" />
+              Invite Sent
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            An invite email has been sent to{" "}
+            <span className="font-medium text-foreground">{invitedEmail}</span>. They&apos;ll
+            receive a link to set their password and access the portal.
+          </p>
+          <DialogFooter>
+            <Button onClick={() => setInvitedEmail(null)}>Done</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Temp password fallback dialog (shown if email sending fails) — non-dismissible */}
       <Dialog open={tempPassword !== null} onOpenChange={() => {}}>
         <DialogContent className="sm:max-w-sm" showCloseButton={false}>
           <DialogHeader>
             <DialogTitle>Temporary Password</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">
-            This password will only be shown once. Share it securely with the new user.
+            The invite email couldn&apos;t be sent. Share this temporary password securely with
+            the new user — it will only be shown once.
           </p>
           <div className="flex items-center gap-2 rounded-md border bg-muted px-3 py-2 font-mono text-sm">
             <span className="flex-1 select-all">{tempPassword}</span>
