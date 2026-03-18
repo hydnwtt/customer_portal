@@ -1,19 +1,50 @@
-export const metadata = { title: "Links" }
+import { auth } from "@/lib/auth"
+import { db } from "@/lib/db"
+import { notFound } from "next/navigation"
+import ResourceLibraryClient from "./ResourceLibraryClient"
 
-export default function LinksPage() {
+export const metadata = { title: "Resources" }
+
+interface Props {
+  params: Promise<{ slug: string }>
+}
+
+export default async function LinksPage({ params }: Props) {
+  const { slug } = await params
+  const session = await auth()
+
+  const account = await db.account.findUnique({
+    where: { slug },
+    select: {
+      id: true,
+      helpfulLinks: { orderBy: { createdAt: "desc" } },
+    },
+  })
+
+  if (!account) notFound()
+
+  const isInternal =
+    session?.user?.role === "INTERNAL_ADMIN" || session?.user?.role === "INTERNAL_MEMBER"
+
+  const resources = account.helpfulLinks.map((l) => ({
+    ...l,
+    createdAt: l.createdAt.toISOString(),
+    updatedAt: l.updatedAt.toISOString(),
+  }))
+
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-1">Helpful Links</h1>
-      <p className="text-sm text-gray-500 mb-8">
-        Curated resources, documentation, and training for this pilot.
-      </p>
-
-      {/* Placeholder — Epic 7 (Tasks 7.1 + 7.2) will build the links library */}
-      <div className="rounded-xl border border-dashed border-gray-300 bg-white p-12 text-center">
-        <p className="text-sm font-medium text-gray-400">
-          Helpful links coming in Epic 7
+      <div className="mb-6">
+        <h1 className="font-mono text-2xl font-bold text-foreground mb-1">Resource Library</h1>
+        <p className="text-sm text-muted-foreground">
+          Curated resources, documentation, and training for this pilot.
         </p>
       </div>
+      <ResourceLibraryClient
+        accountId={account.id}
+        resources={resources}
+        isInternal={isInternal}
+      />
     </div>
   )
 }

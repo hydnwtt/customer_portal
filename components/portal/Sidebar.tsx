@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, BarChart2, Clock, CheckSquare, BookOpen, X } from "lucide-react"
+import { Home, BarChart2, Clock, CheckSquare, BookOpen, Calculator, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const NAV_ITEMS = [
@@ -10,7 +10,8 @@ const NAV_ITEMS = [
   { label: "Success Plan", href: "success-plan", icon: BarChart2 },
   { label: "Timeline", href: "timeline", icon: Clock },
   { label: "Tasks", href: "tasks", icon: CheckSquare },
-  { label: "Links", href: "links", icon: BookOpen },
+  { label: "ROI Calculators", href: "roi-calculators", icon: Calculator },
+  { label: "Resources", href: "links", icon: BookOpen },
 ] as const
 
 interface PortalSidebarProps {
@@ -27,7 +28,7 @@ export default function PortalSidebar({ slug, isOpen, onClose }: PortalSidebarPr
       {/* Mobile backdrop */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-20 bg-black/40 lg:hidden"
+          className="fixed inset-0 z-20 bg-black/60 lg:hidden"
           onClick={onClose}
           aria-hidden="true"
         />
@@ -36,7 +37,7 @@ export default function PortalSidebar({ slug, isOpen, onClose }: PortalSidebarPr
       {/* Sidebar panel */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-30 flex w-64 flex-col bg-white border-r border-gray-200",
+          "fixed inset-y-0 left-0 z-30 flex w-64 flex-col bg-sidebar border-r border-sidebar-border",
           "transition-transform duration-200 ease-in-out",
           "lg:relative lg:translate-x-0",
           isOpen ? "translate-x-0" : "-translate-x-full"
@@ -47,7 +48,7 @@ export default function PortalSidebar({ slug, isOpen, onClose }: PortalSidebarPr
           <button
             onClick={onClose}
             aria-label="Close navigation"
-            className="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+            className="rounded-md p-1 text-muted-foreground hover:bg-accent hover:text-foreground"
           >
             <X className="h-5 w-5" />
           </button>
@@ -66,16 +67,16 @@ export default function PortalSidebar({ slug, isOpen, onClose }: PortalSidebarPr
                 href={href}
                 onClick={onClose}
                 className={cn(
-                  "group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                  "group flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors",
                   isActive
-                    ? "bg-blue-50 text-blue-700"
-                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                    ? "bg-primary/10 text-primary"
+                    : "text-sidebar-foreground/70 hover:bg-accent hover:text-sidebar-foreground"
                 )}
               >
                 <Icon
                   className={cn(
                     "h-4 w-4 shrink-0 transition-colors",
-                    isActive ? "text-blue-600" : "text-gray-400 group-hover:text-gray-600"
+                    isActive ? "text-primary" : "text-muted-foreground group-hover:text-sidebar-foreground"
                   )}
                 />
                 {item.label}

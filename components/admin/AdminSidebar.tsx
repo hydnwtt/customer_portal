@@ -22,11 +22,13 @@ export default function AdminSidebar({ userRole }: AdminSidebarProps) {
   ]
 
   return (
-    <aside className="flex w-64 shrink-0 flex-col border-r bg-background">
+    <aside className="flex w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar">
       {/* Wordmark */}
-      <div className="flex h-16 items-center gap-2 border-b px-6">
-        <span className="text-lg font-bold">Pilot Hub</span>
-        <span className="rounded bg-muted px-1.5 py-0.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+      <div className="flex h-16 items-center gap-2 border-b border-sidebar-border px-6">
+        <span className="font-mono text-lg font-bold text-sidebar-foreground tracking-tight">
+          Pilot Hub
+        </span>
+        <span className="rounded bg-primary/10 px-1.5 py-0.5 text-xs font-semibold uppercase tracking-wide text-primary">
           Admin
         </span>
       </div>
@@ -43,7 +45,8 @@ export default function AdminSidebar({ userRole }: AdminSidebarProps) {
               href={item.href}
               className={cn(
                 buttonVariants({ variant: isActive ? "secondary" : "ghost", size: "sm" }),
-                "w-full justify-start gap-3"
+                "w-full justify-start gap-3",
+                isActive && "bg-primary/10 text-primary hover:bg-primary/15"
               )}
             >
               <Icon className="size-4 shrink-0" />
