@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { UserRole } from "@prisma/client"
-import { CopyIcon, CheckIcon, MailCheckIcon } from "lucide-react"
+import { CopyIcon, CheckIcon } from "lucide-react"
 import {
   Sheet,
   SheetContent,
@@ -30,26 +30,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { inviteCustomerUser } from "@/app/(admin)/admin/accounts/[id]/users/actions"
+import { inviteInternalUser } from "@/app/(admin)/admin/users/actions"
 
 const schema = z.object({
   name: z.string().min(1, "Required").max(100),
   email: z.string().email("Must be a valid email"),
-  role: z.enum([UserRole.CUSTOMER_ADMIN, UserRole.CUSTOMER_VIEWER]),
+  role: z.enum([UserRole.INTERNAL_ADMIN, UserRole.INTERNAL_MEMBER]),
 })
 
 type FormValues = z.infer<typeof schema>
 
-interface InviteUserSheetProps {
-  accountId: string
+interface InviteInternalUserSheetProps {
   open: boolean
   onOpenChange: (open: boolean) => void
 }
 
-export function InviteUserSheet({ accountId, open, onOpenChange }: InviteUserSheetProps) {
+export function InviteInternalUserSheet({ open, onOpenChange }: InviteInternalUserSheetProps) {
   const [serverError, setServerError] = useState<string | null>(null)
   const [tempPassword, setTempPassword] = useState<string | null>(null)
-  const [invitedEmail, setInvitedEmail] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
 
   const {
@@ -60,25 +58,19 @@ export function InviteUserSheet({ accountId, open, onOpenChange }: InviteUserShe
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { role: UserRole.CUSTOMER_VIEWER },
+    defaultValues: { role: UserRole.INTERNAL_MEMBER },
   })
 
   async function onSubmit(values: FormValues) {
     setServerError(null)
-    const result = await inviteCustomerUser({ accountId, ...values })
+    const result = await inviteInternalUser(values)
     if (!result.success) {
       setServerError(result.error)
       return
     }
     reset()
     onOpenChange(false)
-    if (result.tempPassword) {
-      // Email failed — fall back to showing temp password
-      setTempPassword(result.tempPassword)
-    } else {
-      // Email sent successfully
-      setInvitedEmail(values.email)
-    }
+    setTempPassword(result.tempPassword)
   }
 
   async function handleCopy() {
@@ -102,36 +94,39 @@ export function InviteUserSheet({ accountId, open, onOpenChange }: InviteUserShe
       >
         <SheetContent className="sm:max-w-md">
           <SheetHeader>
-            <SheetTitle>Invite User</SheetTitle>
+            <SheetTitle>Invite Team Member</SheetTitle>
           </SheetHeader>
 
           <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-4">
             <div className="space-y-1">
-              <Label htmlFor="inv-name">Full Name *</Label>
-              <Input id="inv-name" {...register("name")} placeholder="Jane Smith" />
+              <Label htmlFor="int-name">Full Name *</Label>
+              <Input id="int-name" {...register("name")} placeholder="Jane Smith" />
               {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
             </div>
 
             <div className="space-y-1">
-              <Label htmlFor="inv-email">Email *</Label>
-              <Input id="inv-email" type="email" {...register("email")} placeholder="jane@acme.com" />
+              <Label htmlFor="int-email">Email *</Label>
+              <Input id="int-email" type="email" {...register("email")} placeholder="jane@pilothub.dev" />
               {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
             </div>
 
             <div className="space-y-1">
               <Label>Role *</Label>
               <Select
-                defaultValue={UserRole.CUSTOMER_VIEWER}
+                defaultValue={UserRole.INTERNAL_MEMBER}
                 onValueChange={(v: string | null) =>
-                  setValue("role", (v ?? UserRole.CUSTOMER_VIEWER) as typeof UserRole.CUSTOMER_ADMIN | typeof UserRole.CUSTOMER_VIEWER)
+                  setValue(
+                    "role",
+                    (v ?? UserRole.INTERNAL_MEMBER) as typeof UserRole.INTERNAL_ADMIN | typeof UserRole.INTERNAL_MEMBER
+                  )
                 }
               >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value={UserRole.CUSTOMER_VIEWER}>Viewer</SelectItem>
-                  <SelectItem value={UserRole.CUSTOMER_ADMIN}>Admin</SelectItem>
+                  <SelectItem value={UserRole.INTERNAL_MEMBER}>Member</SelectItem>
+                  <SelectItem value={UserRole.INTERNAL_ADMIN}>Admin</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -143,42 +138,21 @@ export function InviteUserSheet({ accountId, open, onOpenChange }: InviteUserShe
                 Cancel
               </Button>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Inviting..." : "Invite User"}
+                {isSubmitting ? "Inviting..." : "Invite"}
               </Button>
             </SheetFooter>
           </form>
         </SheetContent>
       </Sheet>
 
-      {/* Invite sent confirmation dialog */}
-      <Dialog open={invitedEmail !== null} onOpenChange={() => {}}>
-        <DialogContent className="sm:max-w-sm" showCloseButton={false}>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <MailCheckIcon className="size-5 text-green-600" />
-              Invite Sent
-            </DialogTitle>
-          </DialogHeader>
-          <p className="text-sm text-muted-foreground">
-            An invite email has been sent to{" "}
-            <span className="font-medium text-foreground">{invitedEmail}</span>. They&apos;ll
-            receive a link to set their password and access the portal.
-          </p>
-          <DialogFooter>
-            <Button onClick={() => setInvitedEmail(null)}>Done</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Temp password fallback dialog (shown if email sending fails) — non-dismissible */}
+      {/* Temp password dialog — non-dismissible */}
       <Dialog open={tempPassword !== null} onOpenChange={() => {}}>
         <DialogContent className="sm:max-w-sm" showCloseButton={false}>
           <DialogHeader>
             <DialogTitle>Temporary Password</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">
-            The invite email couldn&apos;t be sent. Share this temporary password securely with
-            the new user — it will only be shown once.
+            Share this securely with the new team member. It will only be shown once.
           </p>
           <div className="flex items-center gap-2 rounded-md border bg-muted px-3 py-2 font-mono text-sm">
             <span className="flex-1 select-all">{tempPassword}</span>

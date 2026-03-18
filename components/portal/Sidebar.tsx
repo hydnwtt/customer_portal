@@ -2,26 +2,30 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, BarChart2, Clock, CheckSquare, BookOpen, Calculator, X } from "lucide-react"
+import { Home, BarChart2, Clock, CheckSquare, BookOpen, Users, Calculator, X } from "lucide-react"
 import { cn } from "@/lib/utils"
+import type { AccountConfig } from "@/lib/account-config"
 
 const NAV_ITEMS = [
-  { label: "Welcome", href: "welcome", icon: Home },
-  { label: "Success Plan", href: "success-plan", icon: BarChart2 },
-  { label: "Timeline", href: "timeline", icon: Clock },
-  { label: "Tasks", href: "tasks", icon: CheckSquare },
-  { label: "ROI Calculators", href: "roi-calculators", icon: Calculator },
-  { label: "Resources", href: "links", icon: BookOpen },
-] as const
+  { label: "Welcome",        href: "welcome",         icon: Home,        gate: "enableWelcomePage"     as keyof AccountConfig },
+  { label: "Success Plan",   href: "success-plan",    icon: BarChart2,   gate: "enableSuccessMetrics"  as keyof AccountConfig },
+  { label: "Timeline",       href: "timeline",        icon: Clock,       gate: "enableTimeline"        as keyof AccountConfig },
+  { label: "Tasks",          href: "tasks",           icon: CheckSquare, gate: "enableTimeline"        as keyof AccountConfig },
+  { label: "ROI Calculators",href: "roi-calculators", icon: Calculator,  gate: "enableRoiCalculator"   as keyof AccountConfig },
+  { label: "Resources",      href: "links",           icon: BookOpen,    gate: "enableHelpfulLinks"    as keyof AccountConfig },
+  { label: "Stakeholders",   href: "stakeholders",    icon: Users,       gate: "enableStakeholders"    as keyof AccountConfig },
+]
 
 interface PortalSidebarProps {
   slug: string
+  config: AccountConfig
   isOpen: boolean
   onClose: () => void
 }
 
-export default function PortalSidebar({ slug, isOpen, onClose }: PortalSidebarProps) {
+export default function PortalSidebar({ slug, config, isOpen, onClose }: PortalSidebarProps) {
   const pathname = usePathname()
+  const visibleItems = NAV_ITEMS.filter((item) => config[item.gate] !== false)
 
   return (
     <>
@@ -56,7 +60,7 @@ export default function PortalSidebar({ slug, isOpen, onClose }: PortalSidebarPr
 
         {/* Navigation */}
         <nav className="flex-1 space-y-0.5 px-3 py-4 lg:pt-6">
-          {NAV_ITEMS.map((item) => {
+          {visibleItems.map((item) => {
             const href = `/${slug}/${item.href}`
             const isActive = pathname === href || pathname.startsWith(`${href}/`)
             const Icon = item.icon

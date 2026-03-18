@@ -1,6 +1,7 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
 /* Map shadcn CSS variables to Tailwind v4 color tokens */
 @theme inline {

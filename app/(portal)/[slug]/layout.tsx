@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 import { redirect } from "next/navigation"
 import { PortalShell } from "@/components/portal/PortalShell"
+import { parseAccountConfig } from "@/lib/account-config"
 import type { Metadata } from "next"
 
 interface PortalLayoutProps {
@@ -34,6 +35,7 @@ export default async function PortalLayout({ children, params }: PortalLayoutPro
       logoUrl: true,
       goNoGoDate: true,
       primaryColor: true,
+      config: true,
     },
   })
 
@@ -58,6 +60,7 @@ export default async function PortalLayout({ children, params }: PortalLayoutPro
     logoUrl: account.logoUrl,
     goNoGoDate: account.goNoGoDate?.toISOString() ?? null,
     primaryColor: account.primaryColor,
+    config: parseAccountConfig(account.config),
   }
 
   return (

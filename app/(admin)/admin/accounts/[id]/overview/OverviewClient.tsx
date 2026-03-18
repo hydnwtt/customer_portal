@@ -3,11 +3,11 @@
 import { useState } from "react"
 import { PencilIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { AccountStatusBadge } from "@/components/admin/accounts/AccountStatusBadge"
 import { EditAccountSheet, type AccountForEdit } from "@/components/admin/accounts/EditAccountSheet"
 import { formatDate } from "@/lib/utils"
 import type { AccountStatus } from "@prisma/client"
+import { PilotSitesSection } from "@/components/admin/accounts/PilotSitesSection"
 
 interface AccountData extends AccountForEdit {
   pilotSites: Array<{ id: string; name: string }>
@@ -55,18 +55,9 @@ export function OverviewClient({ account }: { account: AccountData }) {
         </Field>
       </div>
 
-      {account.pilotSites.length > 0 && (
-        <div className="mt-6">
-          <p className="mb-2 text-sm font-medium text-muted-foreground">Pilot Sites</p>
-          <div className="flex flex-wrap gap-2">
-            {account.pilotSites.map((s) => (
-              <Badge key={s.id} variant="secondary">
-                {s.name}
-              </Badge>
-            ))}
-          </div>
-        </div>
-      )}
+      <div className="mt-6">
+        <PilotSitesSection accountId={account.id} initialSites={account.pilotSites} />
+      </div>
 
       {account.teamMembers.length > 0 && (
         <div className="mt-6">
