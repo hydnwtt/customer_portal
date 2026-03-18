@@ -2,18 +2,18 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, BarChart2, Clock, CheckSquare, BookOpen, Users, TrendingUp, X } from "lucide-react"
+import { Home, BarChart2, Clock, CheckSquare, BookOpen, Users, Calculator, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { AccountConfig } from "@/lib/account-config"
 
 const NAV_ITEMS = [
-  { label: "Welcome", href: "welcome", icon: Home, gate: "enableWelcomePage" as keyof AccountConfig },
-  { label: "Success Plan", href: "success-plan", icon: BarChart2, gate: "enableSuccessMetrics" as keyof AccountConfig },
-  { label: "Timeline", href: "timeline", icon: Clock, gate: "enableTimeline" as keyof AccountConfig },
-  { label: "Tasks", href: "tasks", icon: CheckSquare, gate: "enableTimeline" as keyof AccountConfig },
-  { label: "Links", href: "links", icon: BookOpen, gate: "enableHelpfulLinks" as keyof AccountConfig },
-  { label: "Stakeholders", href: "stakeholders", icon: Users, gate: "enableStakeholders" as keyof AccountConfig },
-  { label: "ROI Calculator", href: "roi-calculator", icon: TrendingUp, gate: "enableRoiCalculator" as keyof AccountConfig },
+  { label: "Welcome",        href: "welcome",         icon: Home,        gate: "enableWelcomePage"     as keyof AccountConfig },
+  { label: "Success Plan",   href: "success-plan",    icon: BarChart2,   gate: "enableSuccessMetrics"  as keyof AccountConfig },
+  { label: "Timeline",       href: "timeline",        icon: Clock,       gate: "enableTimeline"        as keyof AccountConfig },
+  { label: "Tasks",          href: "tasks",           icon: CheckSquare, gate: "enableTimeline"        as keyof AccountConfig },
+  { label: "ROI Calculators",href: "roi-calculators", icon: Calculator,  gate: "enableRoiCalculator"   as keyof AccountConfig },
+  { label: "Resources",      href: "links",           icon: BookOpen,    gate: "enableHelpfulLinks"    as keyof AccountConfig },
+  { label: "Stakeholders",   href: "stakeholders",    icon: Users,       gate: "enableStakeholders"    as keyof AccountConfig },
 ]
 
 interface PortalSidebarProps {
@@ -32,7 +32,7 @@ export default function PortalSidebar({ slug, config, isOpen, onClose }: PortalS
       {/* Mobile backdrop */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-20 bg-black/40 lg:hidden"
+          className="fixed inset-0 z-20 bg-black/60 lg:hidden"
           onClick={onClose}
           aria-hidden="true"
         />
@@ -41,7 +41,7 @@ export default function PortalSidebar({ slug, config, isOpen, onClose }: PortalS
       {/* Sidebar panel */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-30 flex w-64 flex-col bg-white border-r border-gray-200",
+          "fixed inset-y-0 left-0 z-30 flex w-64 flex-col bg-sidebar border-r border-sidebar-border",
           "transition-transform duration-200 ease-in-out",
           "lg:relative lg:translate-x-0",
           isOpen ? "translate-x-0" : "-translate-x-full"
@@ -52,7 +52,7 @@ export default function PortalSidebar({ slug, config, isOpen, onClose }: PortalS
           <button
             onClick={onClose}
             aria-label="Close navigation"
-            className="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+            className="rounded-md p-1 text-muted-foreground hover:bg-accent hover:text-foreground"
           >
             <X className="h-5 w-5" />
           </button>
@@ -71,20 +71,17 @@ export default function PortalSidebar({ slug, config, isOpen, onClose }: PortalS
                 href={href}
                 onClick={onClose}
                 className={cn(
-                  "group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                  !isActive && "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                  "group flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors",
+                  isActive
+                    ? "bg-primary/10 text-primary"
+                    : "text-sidebar-foreground/70 hover:bg-accent hover:text-sidebar-foreground"
                 )}
-                style={isActive ? {
-                  backgroundColor: "color-mix(in srgb, var(--portal-primary, #2563eb) 12%, transparent)",
-                  color: "var(--portal-primary, #2563eb)",
-                } : undefined}
               >
                 <Icon
                   className={cn(
                     "h-4 w-4 shrink-0 transition-colors",
-                    !isActive && "text-gray-400 group-hover:text-gray-600"
+                    isActive ? "text-primary" : "text-muted-foreground group-hover:text-sidebar-foreground"
                   )}
-                  style={isActive ? { color: "var(--portal-primary, #2563eb)" } : undefined}
                 />
                 {item.label}
               </Link>

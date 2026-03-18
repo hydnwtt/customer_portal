@@ -13,6 +13,7 @@ const TABS = [
   { label: "Timeline", href: "timeline" },
   { label: "Links", href: "links" },
   { label: "Stakeholders", href: "stakeholders" },
+  { label: "Objections", href: "objections" },
 ]
 
 export function AccountDetailTabs({ accountId }: { accountId: string }) {

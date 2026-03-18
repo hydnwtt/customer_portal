@@ -71,6 +71,21 @@ enum TaskPriority {
   LOW
 }
 
+enum ObjectionCategory {
+  PRICING
+  PRODUCT_GAP
+  COMPETITOR
+  TIMELINE
+  INTERNAL_CHAMPION
+  OTHER
+}
+
+enum ObjectionStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+}
+
 // ─── Models ───────────────────────────────────────────────────────────────────
 
 /// Customer organization. Each Account gets its own scoped portal at /{slug}.
@@ -95,6 +110,7 @@ model Account {
   stakeholders     Stakeholder[]
   phases           Phase[]
   helpfulLinks     HelpfulLink[]
+  objections       Objection[]
   welcomePage      WelcomePage?
   notificationJobs NotificationJob[]
   auditLogs        AuditLog[]
@@ -338,4 +354,25 @@ model AuditLog {
 
   @@index([entityType, entityId])
   @@index([accountId, timestamp])
+}
+
+/// Internal-only objection log. Not visible in the customer portal.
+model Objection {
+  id              String             @id @default(cuid())
+  accountId       String
+  objection       String
+  /// Free-text stakeholder name
+  raisedBy        String?
+  dateRaised      DateTime           @default(now())
+  category        ObjectionCategory  @default(OTHER)
+  status          ObjectionStatus    @default(OPEN)
+  resolutionNotes String?
+  /// Free-text owner name
+  owner           String?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  account Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@index([accountId])
 }

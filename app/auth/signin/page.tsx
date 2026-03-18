@@ -28,19 +28,19 @@ export default async function SignInPage({
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <div className="w-full max-w-md">
-        {/* Logo / wordmark */}
+        {/* Wordmark */}
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="font-mono text-2xl font-bold text-foreground tracking-tight">
             {process.env.NEXT_PUBLIC_COMPANY_NAME || "Pilot Hub"}
           </h1>
-          <p className="mt-1 text-sm text-gray-500">Sign in to your portal</p>
+          <p className="mt-1 text-sm text-muted-foreground">Sign in to your portal</p>
         </div>
 
-        <div className="bg-white shadow-sm border border-gray-200 rounded-xl p-8">
+        <div className="bg-card border border-border rounded-xl p-8">
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-100 text-red-700 text-sm rounded-lg">
+            <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 text-destructive text-sm rounded-lg">
               {errorMessages[error] ?? errorMessages.Default}
             </div>
           )}
@@ -64,7 +64,7 @@ export default async function SignInPage({
           >
             <div className="space-y-4">
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="email" className="block text-sm font-medium text-foreground mb-1">
                   Email address
                 </label>
                 <input
@@ -73,13 +73,13 @@ export default async function SignInPage({
                   type="email"
                   required
                   autoComplete="email"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 bg-input border border-border rounded-lg text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
                   placeholder="you@company.com"
                 />
               </div>
 
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="password" className="block text-sm font-medium text-foreground mb-1">
                   Password
                 </label>
                 <input
@@ -88,14 +88,14 @@ export default async function SignInPage({
                   type="password"
                   required
                   autoComplete="current-password"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 bg-input border border-border rounded-lg text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
                   placeholder="••••••••"
                 />
               </div>
 
               <button
                 type="submit"
-                className="w-full py-2.5 px-4 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+                className="w-full py-2.5 px-4 bg-primary text-primary-foreground text-sm font-semibold rounded-lg hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-card transition-colors"
               >
                 Sign in
               </button>

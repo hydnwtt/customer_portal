@@ -14,7 +14,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
+    <div className="flex h-screen overflow-hidden bg-background">
       <AdminSidebar userRole={role} />
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <AdminHeader userName={name ?? ""} userEmail={email ?? ""} />

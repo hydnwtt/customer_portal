@@ -22,7 +22,7 @@ export function PortalShell({ children, slug, account }: PortalShellProps) {
 
   return (
     <div
-      className="flex h-screen overflow-hidden bg-gray-50"
+      className="flex h-screen overflow-hidden bg-background"
       style={account.primaryColor ? ({ "--portal-primary": account.primaryColor } as React.CSSProperties) : undefined}
     >
       <PortalSidebar
