@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
+import { ThemeToggle } from "@/components/ThemeToggle"
 
 interface AdminHeaderProps {
   userName: string
@@ -20,7 +21,8 @@ interface AdminHeaderProps {
 
 export default function AdminHeader({ userName, userEmail }: AdminHeaderProps) {
   return (
-    <header className="flex h-16 shrink-0 items-center justify-end border-b bg-background px-6">
+    <header className="flex h-16 shrink-0 items-center justify-end gap-2 border-b bg-background px-6">
+      <ThemeToggle />
       <DropdownMenu>
         <DropdownMenuTrigger
           className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "gap-2")}

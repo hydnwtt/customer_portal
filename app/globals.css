@@ -59,7 +59,9 @@
 }
 
 @layer base {
-  :root {
+  /* ── Dark theme (default) ─────────────────────── */
+  :root,
+  .dark {
     /* Savi dark navy theme */
     --background: #0A1C25;
     --foreground: #F0F6F9;
@@ -86,6 +88,42 @@
     --chart-5: #C0362C;
     --radius: 0.5rem;
     --sidebar: #071520;
+    --sidebar-foreground: #F0F6F9;
+    --sidebar-primary: #34C4F3;
+    --sidebar-primary-foreground: #0A1C25;
+    --sidebar-accent: #1A3648;
+    --sidebar-accent-foreground: #D4F0FB;
+    --sidebar-border: rgba(255, 255, 255, 0.06);
+    --sidebar-ring: #34C4F3;
+  }
+
+  /* ── Light theme ──────────────────────────────── */
+  .light {
+    --background: #F5F9FB;
+    --foreground: #0A1C25;
+    --card: #FFFFFF;
+    --card-foreground: #0A1C25;
+    --popover: #FFFFFF;
+    --popover-foreground: #0A1C25;
+    --primary: #1AABDC;
+    --primary-foreground: #FFFFFF;
+    --secondary: #E1F4FB;
+    --secondary-foreground: #0A1C25;
+    --muted: #EEF5F8;
+    --muted-foreground: #4A7A8A;
+    --accent: #D4F0FB;
+    --accent-foreground: #0A1C25;
+    --destructive: #C0362C;
+    --border: rgba(10, 28, 37, 0.10);
+    --input: rgba(10, 28, 37, 0.08);
+    --ring: #1AABDC;
+    --chart-1: #1AABDC;
+    --chart-2: #0A1C25;
+    --chart-3: #4A7A8A;
+    --chart-4: #D4F0FB;
+    --chart-5: #C0362C;
+    --radius: 0.5rem;
+    --sidebar: #0A1C25;
     --sidebar-foreground: #F0F6F9;
     --sidebar-primary: #34C4F3;
     --sidebar-primary-foreground: #0A1C25;
