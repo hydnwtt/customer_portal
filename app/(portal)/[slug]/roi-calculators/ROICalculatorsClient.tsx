@@ -24,16 +24,17 @@ interface Props {
   initialCalc: string
   sharedData: Record<string, unknown> | null
   readOnly: boolean
+  enabledCalcIds: string[]
 }
 
 function storageKey(slug: string, calcId: CalcId) {
   return `roi-${slug}-${calcId}`
 }
 
-export default function ROICalculatorsClient({ slug, initialCalc, sharedData, readOnly }: Props) {
-  const [activeCalc, setActiveCalc] = useState<CalcId>(
-    CALCS.some((c) => c.id === initialCalc) ? (initialCalc as CalcId) : "sos"
-  )
+export default function ROICalculatorsClient({ slug, initialCalc, sharedData, readOnly, enabledCalcIds }: Props) {
+  const visibleCalcs = CALCS.filter((c) => enabledCalcIds.includes(c.id))
+  const defaultCalc = visibleCalcs.find((c) => c.id === initialCalc)?.id ?? visibleCalcs[0]?.id ?? "sos"
+  const [activeCalc, setActiveCalc] = useState<CalcId>(defaultCalc as CalcId)
 
   function handleShare() {
     const key = storageKey(slug, activeCalc)
@@ -58,7 +59,7 @@ export default function ROICalculatorsClient({ slug, initialCalc, sharedData, re
 
       {/* Tab nav */}
       <div className="flex flex-wrap gap-1 border-b border-border">
-        {CALCS.map((c) => (
+        {visibleCalcs.map((c) => (
           <button
             key={c.id}
             onClick={() => setActiveCalc(c.id)}

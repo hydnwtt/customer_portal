@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { Building2, Users } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -23,14 +24,17 @@ export default function AdminSidebar({ userRole }: AdminSidebarProps) {
 
   return (
     <aside className="flex w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar">
-      {/* Wordmark */}
-      <div className="flex h-16 items-center gap-2 border-b border-sidebar-border px-6">
-        <span className="font-mono text-lg font-bold text-sidebar-foreground tracking-tight">
-          Pilot Hub
-        </span>
-        <span className="rounded bg-primary/10 px-1.5 py-0.5 text-xs font-semibold uppercase tracking-wide text-primary">
-          Admin
-        </span>
+      {/* Logo / Wordmark */}
+      <div className="flex h-16 items-center gap-3 border-b border-sidebar-border px-5">
+        <Image src="/savi-logo.svg" alt="Savi" width={52} height={39} className="shrink-0" />
+        <div className="flex flex-col leading-tight">
+          <span className="font-mono text-sm font-bold text-sidebar-foreground tracking-tight">
+            Savi Portal
+          </span>
+          <span className="text-xs font-semibold uppercase tracking-wide text-primary">
+            Admin
+          </span>
+        </div>
       </div>
 
       {/* Navigation */}

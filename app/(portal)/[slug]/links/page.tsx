@@ -17,7 +17,18 @@ export default async function LinksPage({ params }: Props) {
     where: { slug },
     select: {
       id: true,
-      helpfulLinks: { orderBy: { createdAt: "desc" } },
+      helpfulLinks: {
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          title: true,
+          url: true,
+          category: true,
+          description: true,
+          thumbnailUrl: true,
+          isRequiredReading: true,
+        },
+      },
     },
   })
 
@@ -25,12 +36,6 @@ export default async function LinksPage({ params }: Props) {
 
   const isInternal =
     session?.user?.role === "INTERNAL_ADMIN" || session?.user?.role === "INTERNAL_MEMBER"
-
-  const resources = account.helpfulLinks.map((l) => ({
-    ...l,
-    createdAt: l.createdAt.toISOString(),
-    updatedAt: l.updatedAt.toISOString(),
-  }))
 
   return (
     <div>
@@ -42,7 +47,7 @@ export default async function LinksPage({ params }: Props) {
       </div>
       <ResourceLibraryClient
         accountId={account.id}
-        resources={resources}
+        resources={account.helpfulLinks}
         isInternal={isInternal}
       />
     </div>

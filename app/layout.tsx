@@ -22,8 +22,8 @@ const instrumentSerif = Instrument_Serif({
 
 export const metadata: Metadata = {
   title: {
-    default: "Pilot Hub",
-    template: "%s | Pilot Hub",
+    default: "Savi Portal",
+    template: "%s | Savi Portal",
   },
   description: "Your shared workspace for pilot success.",
 }

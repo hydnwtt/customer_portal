@@ -272,6 +272,47 @@ export default function TimelineClient({ accountId, phases: initial, goNoGoDate,
               </div>
               <div className="p-4 overflow-x-auto">
                 <div className="min-w-[600px] space-y-2">
+                  {/* Month/day ruler */}
+                  {(() => {
+                    const months: { label: string; pct: number; widthPct: number }[] = []
+                    const start = new Date(minDate)
+                    start.setDate(1)
+                    const cursor = new Date(start)
+                    while (cursor <= maxDate) {
+                      const monthStart = new Date(cursor)
+                      cursor.setMonth(cursor.getMonth() + 1)
+                      const monthEnd = new Date(cursor)
+                      const left = Math.max(0, ((monthStart.getTime() - minDate.getTime()) / 86400000 / totalDays) * 100)
+                      const right = Math.min(100, ((monthEnd.getTime() - minDate.getTime()) / 86400000 / totalDays) * 100)
+                      if (right > 0 && left < 100) {
+                        months.push({
+                          label: monthStart.toLocaleDateString("en-US", { month: "short", year: "2-digit" }),
+                          pct: left,
+                          widthPct: right - left,
+                        })
+                      }
+                    }
+                    return (
+                      <div className="flex items-stretch mb-1">
+                        <div className="w-32 shrink-0" />
+                        <div className="flex-1 relative h-5">
+                          {months.map((m) => (
+                            <div
+                              key={m.label}
+                              className="absolute top-0 h-full border-l border-border/50 pl-1"
+                              style={{ left: `${m.pct}%`, width: `${m.widthPct}%` }}
+                            >
+                              <span className="text-[10px] text-muted-foreground font-medium leading-5 whitespace-nowrap">
+                                {m.label}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="w-14 shrink-0" />
+                      </div>
+                    )
+                  })()}
+
                   {/* Go/No-Go marker */}
                   {goNoPct !== null && (
                     <div className="relative h-6 mb-3">
