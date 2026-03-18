@@ -12,6 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu"
+import { ThemeToggle } from "@/components/ThemeToggle"
 
 interface PortalHeaderProps {
   account: {
@@ -87,7 +88,7 @@ export default function PortalHeader({ account, user, onMenuClick }: PortalHeade
         </div>
       )}
 
-      {/* Right: Savi logo + user menu */}
+      {/* Right: Savi logo + theme toggle + user menu */}
       <div className="flex items-center gap-3">
         <Image
           src="/savi-logo.svg"
@@ -96,6 +97,7 @@ export default function PortalHeader({ account, user, onMenuClick }: PortalHeade
           height={33}
           className="hidden sm:block shrink-0"
         />
+        <ThemeToggle />
 
         <DropdownMenu>
           <DropdownMenuTrigger
