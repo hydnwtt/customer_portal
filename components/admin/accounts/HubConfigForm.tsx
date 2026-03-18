@@ -22,6 +22,11 @@ const schema = z.object({
   enableStakeholders: z.boolean(),
   enableSuccessMetrics: z.boolean(),
   enableWelcomePage: z.boolean(),
+  enableCalcSpeedOfService: z.boolean(),
+  enableCalcLossPrevention: z.boolean(),
+  enableCalcLaborOptimization: z.boolean(),
+  enableCalcMultiSiteTCO: z.boolean(),
+  enableCalcDMTimeSavings: z.boolean(),
 })
 
 type FormValues = z.infer<typeof schema>
@@ -40,6 +45,14 @@ const TOGGLES: { key: keyof AccountConfig; label: string; description: string }[
   { key: "enableHelpfulLinks", label: "Helpful Links", description: "Display curated resource links" },
   { key: "enableStakeholders", label: "Stakeholders", description: "Show stakeholder directory" },
   { key: "enableRoiCalculator", label: "ROI Calculator", description: "Enable the ROI calculator tool" },
+]
+
+const CALC_TOGGLES: { key: keyof AccountConfig; label: string }[] = [
+  { key: "enableCalcSpeedOfService", label: "Speed of Service" },
+  { key: "enableCalcLossPrevention", label: "Loss Prevention" },
+  { key: "enableCalcLaborOptimization", label: "Labor Optimization" },
+  { key: "enableCalcMultiSiteTCO", label: "Multi-Site TCO" },
+  { key: "enableCalcDMTimeSavings", label: "DM Time Savings" },
 ]
 
 export function HubConfigForm({ accountId, logoUrl, primaryColor, config }: HubConfigFormProps) {
@@ -75,6 +88,11 @@ export function HubConfigForm({ accountId, logoUrl, primaryColor, config }: HubC
       enableStakeholders: values.enableStakeholders,
       enableSuccessMetrics: values.enableSuccessMetrics,
       enableWelcomePage: values.enableWelcomePage,
+      enableCalcSpeedOfService: values.enableCalcSpeedOfService,
+      enableCalcLossPrevention: values.enableCalcLossPrevention,
+      enableCalcLaborOptimization: values.enableCalcLaborOptimization,
+      enableCalcMultiSiteTCO: values.enableCalcMultiSiteTCO,
+      enableCalcDMTimeSavings: values.enableCalcDMTimeSavings,
     })
     if (!result.success) {
       setServerError(result.error)
@@ -153,6 +171,28 @@ export function HubConfigForm({ accountId, logoUrl, primaryColor, config }: HubC
             </div>
           ))}
         </div>
+
+        {/* Per-calculator toggles — visible only when ROI Calculator is enabled */}
+        {watch("enableRoiCalculator") && (
+          <div className="ml-4 mt-2 rounded-lg border border-border/60 bg-muted/30 p-4 space-y-3">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">ROI Calculator Tabs</p>
+            {CALC_TOGGLES.map(({ key, label }) => (
+              <div key={key} className="flex items-center justify-between gap-4">
+                <p className="text-sm">{label}</p>
+                <Controller
+                  control={control}
+                  name={key}
+                  render={({ field }) => (
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  )}
+                />
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {serverError && <p className="text-sm text-destructive">{serverError}</p>}

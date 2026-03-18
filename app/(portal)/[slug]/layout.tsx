@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     where: { slug },
     select: { name: true },
   })
-  return { title: { default: account?.name ?? "Portal", template: "%s | Pilot Hub" } }
+  return { title: { default: account?.name ?? "Portal", template: "%s | Savi Portal" } }
 }
 
 export default async function PortalLayout({ children, params }: PortalLayoutProps) {
@@ -64,7 +64,11 @@ export default async function PortalLayout({ children, params }: PortalLayoutPro
   }
 
   return (
-    <PortalShell slug={slug} account={serializedAccount}>
+    <PortalShell
+      slug={slug}
+      account={serializedAccount}
+      user={{ name: session.user.name ?? null, email: session.user.email ?? null }}
+    >
       {children}
     </PortalShell>
   )

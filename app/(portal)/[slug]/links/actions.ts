@@ -14,6 +14,15 @@ async function requireInternal() {
   return session.user
 }
 
+async function revalidateAccount(accountId: string) {
+  const account = await db.account.findUnique({ where: { id: accountId }, select: { slug: true } })
+  if (account?.slug) {
+    revalidatePath(`/${account.slug}/links`)
+    revalidatePath(`/${account.slug}/welcome`)
+  }
+  revalidatePath(`/admin/accounts`)
+}
+
 const VALID_CATEGORIES = ["Documentation", "Training", "Support", "Product Updates", "Legal", "Proposals", "Other"] as const
 
 const resourceSchema = z.object({
@@ -57,7 +66,7 @@ export async function createResource(
     newValue: data.title,
   })
 
-  revalidatePath(`/admin/accounts`)
+  await revalidateAccount(data.accountId)
   return { success: true, id: link.id }
 }
 
@@ -97,7 +106,7 @@ export async function updateResource(
     newValue: rest.title,
   })
 
-  revalidatePath(`/admin/accounts`)
+  await revalidateAccount(accountId)
   return { success: true }
 }
 
@@ -110,7 +119,7 @@ export async function deleteResource(
 
   await db.helpfulLink.delete({ where: { id } })
 
-  revalidatePath(`/admin/accounts`)
+  await revalidateAccount(accountId)
   return { success: true }
 }
 

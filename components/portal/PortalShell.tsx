@@ -15,9 +15,13 @@ interface PortalShellProps {
     primaryColor: string | null
     config: AccountConfig
   }
+  user: {
+    name: string | null
+    email: string | null
+  }
 }
 
-export function PortalShell({ children, slug, account }: PortalShellProps) {
+export function PortalShell({ children, slug, account, user }: PortalShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
@@ -35,6 +39,7 @@ export function PortalShell({ children, slug, account }: PortalShellProps) {
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <PortalHeader
           account={account}
+          user={user}
           onMenuClick={() => setSidebarOpen(true)}
         />
         <main className="scrollbar-thin flex-1 overflow-y-auto p-4 md:p-6">{children}</main>

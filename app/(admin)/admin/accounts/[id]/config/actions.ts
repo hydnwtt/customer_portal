@@ -17,6 +17,11 @@ const configSchema = z.object({
   enableStakeholders: z.boolean(),
   enableSuccessMetrics: z.boolean(),
   enableWelcomePage: z.boolean(),
+  enableCalcSpeedOfService: z.boolean(),
+  enableCalcLossPrevention: z.boolean(),
+  enableCalcLaborOptimization: z.boolean(),
+  enableCalcMultiSiteTCO: z.boolean(),
+  enableCalcDMTimeSavings: z.boolean(),
 })
 
 export type UpdateAccountConfigInput = z.infer<typeof configSchema>

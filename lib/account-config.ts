@@ -5,6 +5,12 @@ export interface AccountConfig {
   enableStakeholders: boolean
   enableSuccessMetrics: boolean
   enableWelcomePage: boolean
+  // Individual ROI calculator toggles (only applied when enableRoiCalculator is true)
+  enableCalcSpeedOfService: boolean
+  enableCalcLossPrevention: boolean
+  enableCalcLaborOptimization: boolean
+  enableCalcMultiSiteTCO: boolean
+  enableCalcDMTimeSavings: boolean
 }
 
 const DEFAULTS: AccountConfig = {
@@ -14,19 +20,33 @@ const DEFAULTS: AccountConfig = {
   enableStakeholders: true,
   enableSuccessMetrics: true,
   enableWelcomePage: true,
+  enableCalcSpeedOfService: true,
+  enableCalcLossPrevention: true,
+  enableCalcLaborOptimization: true,
+  enableCalcMultiSiteTCO: true,
+  enableCalcDMTimeSavings: true,
+}
+
+function bool(val: unknown, fallback: boolean): boolean {
+  return typeof val === "boolean" ? val : fallback
 }
 
 export function parseAccountConfig(raw: unknown): AccountConfig {
   if (raw === null || typeof raw !== "object" || Array.isArray(raw)) {
     return { ...DEFAULTS }
   }
-  const obj = raw as Record<string, unknown>
+  const o = raw as Record<string, unknown>
   return {
-    enableRoiCalculator: typeof obj.enableRoiCalculator === "boolean" ? obj.enableRoiCalculator : DEFAULTS.enableRoiCalculator,
-    enableHelpfulLinks: typeof obj.enableHelpfulLinks === "boolean" ? obj.enableHelpfulLinks : DEFAULTS.enableHelpfulLinks,
-    enableTimeline: typeof obj.enableTimeline === "boolean" ? obj.enableTimeline : DEFAULTS.enableTimeline,
-    enableStakeholders: typeof obj.enableStakeholders === "boolean" ? obj.enableStakeholders : DEFAULTS.enableStakeholders,
-    enableSuccessMetrics: typeof obj.enableSuccessMetrics === "boolean" ? obj.enableSuccessMetrics : DEFAULTS.enableSuccessMetrics,
-    enableWelcomePage: typeof obj.enableWelcomePage === "boolean" ? obj.enableWelcomePage : DEFAULTS.enableWelcomePage,
+    enableRoiCalculator:         bool(o.enableRoiCalculator,         DEFAULTS.enableRoiCalculator),
+    enableHelpfulLinks:          bool(o.enableHelpfulLinks,          DEFAULTS.enableHelpfulLinks),
+    enableTimeline:              bool(o.enableTimeline,              DEFAULTS.enableTimeline),
+    enableStakeholders:          bool(o.enableStakeholders,          DEFAULTS.enableStakeholders),
+    enableSuccessMetrics:        bool(o.enableSuccessMetrics,        DEFAULTS.enableSuccessMetrics),
+    enableWelcomePage:           bool(o.enableWelcomePage,           DEFAULTS.enableWelcomePage),
+    enableCalcSpeedOfService:    bool(o.enableCalcSpeedOfService,    DEFAULTS.enableCalcSpeedOfService),
+    enableCalcLossPrevention:    bool(o.enableCalcLossPrevention,    DEFAULTS.enableCalcLossPrevention),
+    enableCalcLaborOptimization: bool(o.enableCalcLaborOptimization, DEFAULTS.enableCalcLaborOptimization),
+    enableCalcMultiSiteTCO:      bool(o.enableCalcMultiSiteTCO,      DEFAULTS.enableCalcMultiSiteTCO),
+    enableCalcDMTimeSavings:     bool(o.enableCalcDMTimeSavings,     DEFAULTS.enableCalcDMTimeSavings),
   }
 }

@@ -1,3 +1,6 @@
+import { db } from "@/lib/db"
+import { notFound } from "next/navigation"
+import { parseAccountConfig } from "@/lib/account-config"
 import ROICalculatorsClient from "./ROICalculatorsClient"
 
 export const metadata = { title: "ROI Calculators" }
@@ -7,9 +10,28 @@ interface Props {
   searchParams: Promise<{ calc?: string; data?: string }>
 }
 
+const CALC_ID_MAP = [
+  { id: "sos", flag: "enableCalcSpeedOfService" },
+  { id: "lp", flag: "enableCalcLossPrevention" },
+  { id: "labor", flag: "enableCalcLaborOptimization" },
+  { id: "tco", flag: "enableCalcMultiSiteTCO" },
+  { id: "dm", flag: "enableCalcDMTimeSavings" },
+] as const
+
 export default async function ROICalculatorsPage({ params, searchParams }: Props) {
   const { slug } = await params
   const { calc, data } = await searchParams
+
+  const account = await db.account.findUnique({
+    where: { slug },
+    select: { config: true },
+  })
+  if (!account) notFound()
+
+  const config = parseAccountConfig(account.config)
+  const enabledCalcIds = CALC_ID_MAP
+    .filter(({ flag }) => config[flag] !== false)
+    .map(({ id }) => id)
 
   // Decode shared link data
   let sharedData: Record<string, unknown> | null = null
@@ -34,6 +56,7 @@ export default async function ROICalculatorsPage({ params, searchParams }: Props
         initialCalc={calc ?? "sos"}
         sharedData={sharedData}
         readOnly={!!data}
+        enabledCalcIds={enabledCalcIds}
       />
     </div>
   )
